@@ -1,6 +1,5 @@
-<manifest xmlns:android="[http://schemas.android.com/apk/res/android](http://schemas.android.com/apk/res/android)">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Permissions -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.INTERNET"/>
 
@@ -18,8 +17,6 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- ***** YAHI MUKHYA FIX HAI ***** -->
-        <!-- (V1 Embedding Error को फिक्स करने के लिए) -->
         <activity
             android:name="io.flutter.embedding.android.FlutterActivity"
             android:exported="true"
@@ -38,8 +35,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- ******************************** -->
-
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
