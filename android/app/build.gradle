@@ -6,22 +6,25 @@ plugins {
 }
 
 android {
-    namespace = "com.shwetraj.jarvis"
+    namespace = "com.shwetraj.jarvis" // यह आपके पुराने कोड से लिया गया है
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    // --- YAHAN SAHI FIX DAALA GAYA HAI ---
+    // (Java 8 वाली वॉर्निंग को Java 11 से फिक्स किया गया)
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = '11'
     }
+    // --- FIX ENDS HERE ---
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.shwetraj.jarvis"
+        applicationId = "com.shwetraj.jarvis" // यह आपके पुराने कोड से लिया गया है
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -42,3 +45,4 @@ android {
 flutter {
     source = "../.."
 }
+
