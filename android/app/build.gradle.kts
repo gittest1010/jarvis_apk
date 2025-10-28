@@ -1,0 +1,51 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+<!-- Permissions for audio recording and internet -->
+<uses-permission android:name="android.permission.RECORD_AUDIO"/>
+<uses-permission android:name="android.permission.INTERNET"/>
+
+<!-- Queries for speech and text-to-speech services -->
+<queries>
+<intent>
+<action android:name="android.speech.RecognitionService" />
+</intent>
+<intent>
+<action android:name="android.intent.action.TTS_SERVICE" />
+</intent>
+</queries>
+
+<application
+android:label="Smart Assistant"
+android:name="${applicationName}"
+android:icon="@mipmap/ic_launcher">
+
+<!-- Main Flutter Activity -->
+<activity
+android:name="io.flutter.embedding.android.FlutterActivity"
+android:exported="true"
+android:launchMode="singleTop"
+android:theme="@style/LaunchTheme"
+android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+android:hardwareAccelerated="true"
+android:windowSoftInputMode="adjustResize">
+
+<!-- Specifies the theme to use after the launch screen -->
+<meta-data
+android:name="io.flutter.embedding.android.NormalTheme"
+android:resource="@style/NormalTheme"
+/>
+
+<!-- Intent filter to make this the main entry point of the app -->
+<intent-filter>
+<action android:name="android.intent.action.MAIN"/>
+<category android:name="android.intent.category.LAUNCHER"/>
+</intent-filter>
+</activity>
+
+<!-- Flutter V2 Embedding metadata -->
+<meta-data
+android:name="flutterEmbedding"
+android:value="2" />
+</application>
+</manifest>
+
