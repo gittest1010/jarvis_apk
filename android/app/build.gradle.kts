@@ -1,51 +1,44 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id("dev.flutter.flutter-gradle-plugin")
+}
 
-<!-- Permissions for audio recording and internet -->
-<uses-permission android:name="android.permission.RECORD_AUDIO"/>
-<uses-permission android:name="android.permission.INTERNET"/>
+android {
+    namespace = "com.example.voice_assistant"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
 
-<!-- Queries for speech and text-to-speech services -->
-<queries>
-<intent>
-<action android:name="android.speech.RecognitionService" />
-</intent>
-<intent>
-<action android:name="android.intent.action.TTS_SERVICE" />
-</intent>
-</queries>
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
 
-<application
-android:label="Smart Assistant"
-android:name="${applicationName}"
-android:icon="@mipmap/ic_launcher">
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
 
-<!-- Main Flutter Activity -->
-<activity
-android:name="io.flutter.embedding.android.FlutterActivity"
-android:exported="true"
-android:launchMode="singleTop"
-android:theme="@style/LaunchTheme"
-android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-android:hardwareAccelerated="true"
-android:windowSoftInputMode="adjustResize">
+    defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId = "com.example.voice_assistant"
+        // You can update the following values to match your application needs.
+        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
 
-<!-- Specifies the theme to use after the launch screen -->
-<meta-data
-android:name="io.flutter.embedding.android.NormalTheme"
-android:resource="@style/NormalTheme"
-/>
+    buildTypes {
+        release {
+            // TODO: Add your own signing config for the release build.
+            // Signing with the debug keys for now, so `flutter run --release` works.
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+}
 
-<!-- Intent filter to make this the main entry point of the app -->
-<intent-filter>
-<action android:name="android.intent.action.MAIN"/>
-<category android:name="android.intent.category.LAUNCHER"/>
-</intent-filter>
-</activity>
-
-<!-- Flutter V2 Embedding metadata -->
-<meta-data
-android:name="flutterEmbedding"
-android:value="2" />
-</application>
-</manifest>
-
+flutter {
+    source = "../.."
+}
