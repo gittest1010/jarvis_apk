@@ -8,23 +8,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:jarvis/main.dart';
+// FIX: The project name (from pubspec.yaml) is 'voice_assistant', not 'jarvis'.
+import 'package:voice_assistant/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  // UPDATED TEST: This test now checks for UI elements from your actual app,
+  // not the default counter app.
+  testWidgets('Voice Assistant UI smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that the AppBar title is correct.
+    expect(find.text('Smart Voice Assistant'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verify that the initial instruction text is present.
+    expect(find.text('Tap the mic and start speaking...'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the initial microphone icon is present.
+    expect(find.byIcon(Icons.mic_none), findsOneWidget);
   });
 }
