@@ -1,4 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ********************************************** -->
+    <!-- ***** YEH PERMISSIONS ADD KI GAYI HAIN ***** -->
+    <!-- Permission maangne ke liye zaroori -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- (Aapka TTS package internet maang sakta hai) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- ********************************************** -->
+
+
     <application
         android:label="voice_assistant"
         android:name="${applicationName}"
@@ -31,15 +41,28 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
 
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+
+    <!-- ************************************************************* -->
+    <!-- ***** YEH SPEECH QUERIES ADD KI GAYI HAIN ***** -->
+    <!-- Speech-to-Text aur Text-to-Speech ko dhoondhne ke liye zaroori -->
     <queries>
+        <!-- Text-to-Speech (TTS) ke liye -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+        <!-- Speech-to-Text (STT) ke liye -->
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        
+        <!-- Yeh pehle se tha, isse rehne dein -->
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+    <!-- ************************************************************* -->
+
 </manifest>
+
