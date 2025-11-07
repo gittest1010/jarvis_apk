@@ -1,30 +1,45 @@
 name: voice_assistant
-description: "A smart voice assistant app."
+description: "Jarvis srs: A smart voice assistant launcher."
+# Saare packages ke latest stable versions daal diye gaye hain
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.3.0 <4.0.0' # Updated SDK constraint
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # Voice-to-Text package
-  speech_to_text: ^7.3.0
-
-  # Text-to-Speech package
+  # Voice & AI (Core)
+  picovoice_flutter: ^3.0.1
   flutter_tts: ^4.0.2
+  http: ^1.2.1
 
-  # Permissions handle karne ke liye
-  permission_handler: ^12.0.1
-
-  cupertino_icons: ^1.0.2
+  # Launcher & Device (Core)
+  device_apps: ^2.2.0
+  flutter_contacts: ^1.1.8
+  flutter_phone_direct_caller: ^2.1.1
+  
+  # Utility Packages
+  permission_handler: ^11.3.1
+  connectivity_plus: ^6.0.3
+  wakelock_plus: ^1.2.0
+  
+  # UI Packages (Code dikhaane ke liye)
+  flutter_syntax_highlighter: ^0.2.1 # Version downgrade kiya gaya (error ke hisaab se)
+  clipboard: ^0.1.3
+  cupertino_icons: ^1.0.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^4.0.0 # Latest lints
 
 flutter:
   uses-material-design: true
+
+  # Assets: Hotword (.ppn) aur STT Model (.pv) ke liye
+  assets:
+    - assets/keywords/
+    - assets/models/
