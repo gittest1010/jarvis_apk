@@ -1,9 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- ===== NAYI PERMISSIONS (Jarvis ke liye) ===== -->
+    <!-- ===== PERMISSIONS (Jarvis srs ke liye) ===== -->
     <!-- Picovoice (Hotword + STT) ke liye -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <!-- Picovoice ko background mein chalaane ke liye -->
+    <!-- Picovoice/Wakelock (Background + Screen) ke liye -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     
     <!-- Gemini API (Online Brain) ke liye -->
@@ -17,47 +17,49 @@
     <!-- ============================================== -->
 
 
-    <!-- ===== NAYI QUERIES (Jarvis ke liye) ===== -->
+    <!-- ===== QUERIES (Jarvis srs ke liye) ===== -->
     <queries>
-        <!-- flutter_tts (Offline bolne) ke liye -->
-        <intent>
-            <action android:name="android.intent.action.TTS_SERVICE" />
-        </intent>
         <!-- device_apps (App Drawer) ke liye -->
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
+        
+        <!-- HATA DIYA GAYA: flutter_tts (Offline bolne) ke liye zaroori tha -->
+        <!-- 
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent> 
+        -->
     </queries>
     <!-- ====================================== -->
 
     <application
-        android:label="Jarvis srs" <!-- NAAM UPDATE KIYA GAYA -->
+        android:label="Jarvis srs"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
-            android:name=".MainActivity" <!-- Naya (Regenerated) activity naam -->
+            android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
+            androidG:windowSoftInputMode="adjustResize">
             
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
             
-            <!-- ===== YEH APP KO LAUNCHER BANATA HAI ===== -->
+            <!-- App ko Launcher banata hai -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.HOME"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- ========================================== -->
 
         </activity>
         

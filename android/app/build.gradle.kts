@@ -1,3 +1,6 @@
+// Java 11 ko import karein
+import org.gradle.api.JavaVersion
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,8 +8,16 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// NAYA: Gradle ko batayein ki 'libs' folder se .aar file dhoondhe
+repositories {
+    flatDir {
+        dirs("libs")
+    }
+}
+
 android {
-    namespace = "com.example.voice_assistant"
+    // Yeh aapka naya (aur sahi) namespace hai
+    namespace = "com.example.voice_assistant" 
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,10 +31,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.voice_assistant"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -32,8 +40,6 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -41,4 +47,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// NAYA: Orca (Native TTS) ki .aar file ko dependency banayein
+dependencies {
+    // FIX: Version ko aapki download ki hui file (1.2.0) se match karein
+    implementation(name: "orca-android-1.2.0", ext: "aar") 
 }
