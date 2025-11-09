@@ -1,56 +1,80 @@
-// Java 11 ko import karein
-import org.gradle.api.JavaVersion
+package com.example.voice_assistant // IMPORTANT: Yahaan apna package naam zaroor check kar lein
 
-plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id("dev.flutter.flutter-gradle-plugin")
-}
+import androidx.annotation.NonNull
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 
-// NAYA: Gradle ko batayein ki 'libs' folder se .aar file dhoondhe
-repositories {
-    flatDir {
-        dirs("libs")
+// Orca ke imports
+import ai.picovoice.orca.Orca
+import ai.picovoice.orca.OrcaException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
+class MainActivity: FlutterActivity() {
+    private val CHANNEL = "com.jarvis.orca" // Aapke code waala channel naam
+    private var orca: Orca? = null
+
+    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+                .setMethodCallHandler { call, result ->
+                    when (call.method) {
+                        "initOrca" -> {
+                            try {
+                                val accessKey = call.argument<String>("accessKey")
+                                
+                                // NAYA: Asset se file padhne ka Kotlin tareeka
+                                // FIX: Yahaan aapka file naam daal diya gaya hai
+                                val modelPath = "orca_params_en_male.pv" 
+                                // (Zaroor check karein ki file ka naam 'android/app/src/main/assets/' mein yahi hai)
+                                
+                                // File ko cache directory mein copy karein taaki Orca usse read kar sake
+                                val modelFile = java.io.File(cacheDir, modelPath)
+                                if (!modelFile.exists()) {
+                                    val assetStream = assets.open(modelPath)
+                                    val fileOutStream = java.io.FileOutputStream(modelFile)
+                                    assetStream.copyTo(fileOutStream)
+                                    assetStream.close()
+                                    fileOutStream.close()
+                                }
+
+                                orca = Orca(accessKey, modelFile.absolutePath)
+                                
+                                result.success(true)
+                            } catch (e: Exception) {
+                                result.error("INIT_ERROR", e.message, null)
+                            }
+                        }
+
+                        "speak" -> {
+                            try {
+                                val text = call.argument<String>("text")
+                                // Orca int16[] return karta hai, usse byte[] mein badlein
+                                val pcm: ShortArray = orca!!.synthesize(text)
+                                val buffer = ByteBuffer.allocate(pcm.size * 2) // 16-bit = 2 bytes
+                                buffer.order(ByteOrder.LITTLE_ENDIAN)
+                                for (shortVal in pcm) {
+                                    buffer.putShort(shortVal)
+                                }
+                                
+                                result.success(buffer.array())
+                            } catch (e: OrcaException) {
+                                result.error("SYNTH_ERROR", e.message, null)
+                            }
+                        }
+
+                        "deleteOrca" -> {
+                             orca?.delete()
+                             orca = null
+                             result.success(true)
+                        }
+
+                        else -> {
+                            result.notImplemented()
+                        }
+                    }
+                }
     }
-}
-
-android {
-    // Yeh aapka naya (aur sahi) namespace hai
-    namespace = "com.example.voice_assistant" 
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
-
-    defaultConfig {
-        applicationId = "com.example.voice_assistant"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
-
-    buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("debug")
-        }
-    }
-}
-
-flutter {
-    source = "../.."
-}
-
-// NAYA: Orca (Native TTS) ki .aar file ko dependency banayein
-dependencies {
-    // FIX: Version ko aapki download ki hui file (1.2.0) se match karein
-    implementation(name: "orca-android-1.2.0", ext: "aar") 
 }
