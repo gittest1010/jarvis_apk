@@ -15,7 +15,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:picovoice_flutter/picovoice_manager.dart';
 import 'package:picovoice_flutter/picovoice_error.dart';
-import 'package:device_apps/device_apps.dart'; 
+
+// NAYA: 'device_apps' ki jagah yeh package (BUILD FIX)
+import 'package:installed_apps/installed_apps.dart';
+import 'package:installed_apps/app_info.dart';
+
 import 'package:wakelock_plus/wakelock_plus.dart'; 
 import 'package:http/http.dart' as http; 
 import 'package:connectivity_plus/connectivity_plus.dart'; 
@@ -133,7 +137,8 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
   final List<ChatMessage> _chatHistory = [];
   final ScrollController _scrollController = ScrollController();
   
-  List<Application> _installedApps = [];
+  // NAYA: Class ka naam Application -> AppInfo kar diya gaya hai
+  List<AppInfo> _installedApps = [];
   bool _isOnline = false;
 
   @override
@@ -162,13 +167,15 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
   }
 
 
+  // NAYA: Function ko 'installed_apps' ke liye update kiya gaya
   void _loadInstalledApps() async {
-     List<Application> apps = await DeviceApps.getInstalledApplications(
-        includeAppIcons: true,
-        onlyAppsWithLaunchIntent: true,
-        includeSystemApps: false 
+     // 'device_apps' ki jagah 'installed_apps' ka istemal
+     List<AppInfo> apps = await InstalledApps.getInstalledApps(
+        true, // includeAppIcons
+        true  // onlyAppsWithLaunchIntent
      );
-     apps.sort((a, b) => a.appName.toLowerCase().compareTo(b.appName.toLowerCase()));
+     
+     apps.sort((a, b) => a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
      setState(() {
        _installedApps = apps;
      });
