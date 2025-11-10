@@ -1,54 +1,51 @@
 name: voice_assistant
-description: "Jarvis srs Smart Launcher"
-publish_to: 'none' 
+description: "Jarvis SRS Smart Launcher"
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0' 
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
   # ----- AI / VOICE (CORE) -----
-  # Hotword (Hey Jarvis) + STT (Offline Command)
-  picovoice_flutter: ^3.0.1 
-  
-  # NAYA: Native Orca ki raw audio ko play karne ke liye
-  audioplayers: ^6.0.0 
-  
-  # AI Brain (Online) - Gemini API call ke liye
-  http: ^1.2.1 
+  # Hotword detection + offline speech understanding
+  picovoice_flutter: ^3.0.1
+
+  # Native Orca audio playback
+  audioplayers: ^6.1.0
+
+  # Online AI (Gemini API)
+  http: ^1.2.2
 
   # ----- LAUNCHER FEATURES -----
-  # 'device_apps' ki jagah yeh (build fix)
-  installed_apps: ^1.2.0 
+  # Replacement for device_apps (safe for Android 14+)
+  installed_apps: ^1.2.0
   flutter_contacts: ^1.1.8
   flutter_phone_direct_caller: ^2.1.1
 
   # ----- UI PACKAGES -----
-  flutter_syntax_highlighter: ^0.2.1 
+  flutter_syntax_highlighter: ^0.2.1
   clipboard: ^0.1.3
   cupertino_icons: ^1.0.8
 
-  # ----- UTILITIES (Optimization & Permissions) -----
+  # ----- UTILITIES & PERMISSIONS -----
   permission_handler: ^11.3.1
-  wakelock_plus: ^1.2.0
+  wakelock_plus: ^1.2.5
   connectivity_plus: ^6.0.3
-
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  
   flutter_lints: ^4.0.0
 
-# Flutter-specific settings
 flutter:
   uses-material-design: true
 
-  # Picovoice models ko register karein
+  # ----- ASSETS -----
   assets:
-    - assets/keywords/ # .ppn file ke liye
-    - assets/models/  # .pv file (Cheetah) ke liye
-    # Orca ki .pv file ab native 'assets' (android/app/src/main/assets/) mein jaayegi
+    # Picovoice hotword and context models
+    - assets/keywords/
+    - assets/models/
