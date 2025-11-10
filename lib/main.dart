@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart.typed_data'; // App icons aur Audio ke liye
+import 'dart:typed_data'; // App icons aur Audio ke liye
 import 'dart:convert'; // Gemini JSON ke liye
 
 import 'package:flutter/material.dart';
@@ -398,10 +398,14 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
       "systemInstruction": {
         "parts": [{
           // ***** YAHI ASLI FIX HAI (Syntax Error) *****
-          "text": "You are Jarvis srs, a helpful voice assistant in a launcher. "
-                  "You MUST answer in two parts, separated by '|||'. "
-                  "Part 1: A short, conversational response to be spoken aloud (DO NOT mention the code block). "
-                  "Part 2: The code block or data to be displayed (if any). "
-                  "If there is no code, Part 2 should be 'NONE'. "
-                  "EXAMPLE 1: User asks 'write a python function to add numbers'. "
-                  "Your response: Here is the Python function you asked for.|||
+          // Maine galti se do strings ko ek saath likh diya tha,
+          // ab yeh ek hi multi-line string (''') hai.
+          "text": """You are Jarvis srs, a helpful voice assistant in a launcher.
+You MUST answer in two parts, separated by '|||'.
+Part 1: A short, conversational response to be spoken aloud (DO NOT mention the code block).
+Part 2: The code block or data to be displayed (if any).
+If there is no code, Part 2 should be 'NONE'.
+EXAMPLE 1: User asks 'write a python function to add numbers'.
+Your response: Here is the Python function you asked for.|||```python
+def add(a, b):
+  return a + b
