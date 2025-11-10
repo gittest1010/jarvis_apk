@@ -1,23 +1,34 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:math';
+import 'dart.typed_data'; // App icons aur Audio ke liye
+import 'dart:convert'; // Gemini JSON ke liye
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; // Clipboard aur Platform Channel ke liye
+
+// NAYA: Orca ki audio play karne ke liye
 import 'package:audioplayers/audioplayers.dart';
+
+// HATA DIYA: flutter_tts
+// import 'package:flutter_tts/flutter_tts.dart';
+
 import 'package:permission_handler/permission_handler.dart';
 import 'package:picovoice_flutter/picovoice_manager.dart';
 import 'package:picovoice_flutter/picovoice_error.dart';
+
+// NAYA: 'device_apps' ki jagah yeh package (BUILD FIX)
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:http/http.dart' as http;
-import 'package:connectivity_plus/connectivity_plus.dart';
+
+import 'package:wakelock_plus/wakelock_plus.dart'; 
+import 'package:http/http.dart' as http; 
+import 'package:connectivity_plus/connectivity_plus.dart'; 
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_syntax_highlighter/flutter_syntax_highlighter.dart';
 import 'package:clipboard/clipboard.dart';
 
-/// ORCA TTS Helper
+// NAYA: Platform Channel se baat karne ke liye helper class
 class OrcaTTS {
   static const platform = MethodChannel('com.jarvis.orca');
   final player = AudioPlayer();
@@ -29,32 +40,38 @@ class OrcaTTS {
       _isInitialized = true;
     } catch (e) {
       _isInitialized = false;
-      rethrow;
+      rethrow; // Error ko aage bhej dein
     }
   }
 
   Future<void> speak(String text) async {
     if (!_isInitialized) throw Exception("Orca is not initialized.");
+    
+    // Player ko rokein (agar pehle se bol raha hai)
     await player.stop();
-    final Uint8List audioData =
-        await platform.invokeMethod('speak', {'text': text});
+
+    // Native Java/Kotlin code se audio data (bytes) lein
+    final Uint8List audioData = await platform.invokeMethod('speak', {'text': text});
+    
+    // Uss audio data ko play karein
     await player.play(BytesSource(audioData));
   }
-
+  
   Future<void> stop() async {
     await player.stop();
   }
 
   Future<void> delete() async {
     await player.dispose();
-    if (_isInitialized) {
+    if(_isInitialized) {
       await platform.invokeMethod('deleteOrca');
       _isInitialized = false;
     }
   }
 }
 
-void main() async {
+
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
@@ -64,9 +81,10 @@ enum _AssistantState { idle, listening, thinking, speaking, error }
 class ChatMessage {
   final String text;
   final bool isUser;
-  final bool isCodeBlock;
+  final bool isCodeBlock; 
   ChatMessage(this.text, {this.isUser = false, this.isCodeBlock = false});
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -75,15 +93,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Jarvis SRS Launcher',
+      title: 'Jarvis srs Launcher',
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0A0F1E),
-        primaryColor: const Color(0xFF00BFFF),
+        scaffoldBackgroundColor: const Color(0xFF0A0F1E), 
+        primaryColor: const Color(0xFF00BFFF), 
         colorScheme: ColorScheme.fromSwatch(
           brightness: Brightness.dark,
           primarySwatch: Colors.blue,
-        ).copyWith(secondary: const Color(0xFF00BFFF)),
+        ).copyWith(
+          secondary: const Color(0xFF00BFFF),
+        ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF161D30),
           elevation: 0,
@@ -102,16 +122,22 @@ class VoiceAssistantScreen extends StatefulWidget {
 }
 
 class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
-  final String _picovoiceAccessKey = "YOUR_PICOVOICE_ACCESS_KEY_HERE";
-  final String _geminiApiKey = "YOUR_GEMINI_API_KEY_HERE";
+  // ***** API KEYS (Yahaan paste karein) *****
+  final String _picovoiceAccessKey = "Du/wUGsdB9dU+um0teBOZNydHV2rzDiO6dbsGtLTqTGUYQF0RQzuIA==";
+  final String _geminiApiKey = "AIzaSyBs-_4ek29Hu116CNJHjyH-DtkcmBx3xaU";
+  // *****************************************
 
   PicovoiceManager? _picovoiceManager;
+  
+  // NAYA: Orca TTS (Native)
   late OrcaTTS _orcaTTS;
 
   _AssistantState _currentState = _AssistantState.idle;
+
   final List<ChatMessage> _chatHistory = [];
   final ScrollController _scrollController = ScrollController();
-
+  
+  // NAYA: Class ka naam Application -> AppInfo kar diya gaya hai
   List<AppInfo> _installedApps = [];
   bool _isOnline = false;
 
@@ -120,39 +146,44 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
     super.initState();
     _initServices();
   }
-
+  
   Future<void> _initServices() async {
-    await WakelockPlus.enable();
-    await _requestPermissions();
-
-    var connectivityResult = await Connectivity().checkConnectivity();
-    _isOnline = connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi;
-
+    WakelockPlus.enable(); 
+    await _requestPermissions(); 
+    
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    _isOnline = connectivityResult.contains(ConnectivityResult.mobile) ||
+                connectivityResult.contains(ConnectivityResult.wifi);
+    
     Connectivity().onConnectivityChanged.listen((event) {
       setState(() {
-        _isOnline =
-            event == ConnectivityResult.mobile || event == ConnectivityResult.wifi;
+         _isOnline = !(event.contains(ConnectivityResult.none));
       });
     });
 
-    await _initTts();
-    await _initPicovoice();
-    _loadInstalledApps();
+    _initTts(); // NAYA: Orca (TTS) ko initialize karein
+    _initPicovoice(); 
+    _loadInstalledApps(); 
   }
 
-  Future<void> _requestPermissions() async {
-    await [
-      Permission.microphone,
-      Permission.contacts,
-      Permission.phone,
-      Permission.storage,
-    ].request();
+
+  // NAYA: Function ko 'installed_apps' ke liye update kiya gaya
+  void _loadInstalledApps() async {
+     // 'device_apps' ki jagah 'installed_apps' ka istemal
+     List<AppInfo> apps = await InstalledApps.getInstalledApps(
+        true, // includeAppIcons
+        true  // onlyAppsWithLaunchIntent
+     );
+     
+     apps.sort((a, b) => a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
+     setState(() {
+       _installedApps = apps;
+     });
   }
 
-  Future<void> _initPicovoice() async {
+  void _initPicovoice() async {
     String keywordPath = "assets/keywords/Hey-jarvis_en_android_v3_0_0.ppn";
-    String contextPath = "assets/models/cheetah_params.pv";
+    String contextPath = "assets/models/cheetah_params.pv"; 
 
     try {
       _picovoiceManager = await PicovoiceManager.create(
@@ -161,44 +192,60 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
         _wakeWordCallback,
         contextPath,
         _inferenceCallback,
-        (error) {
+        // ***** ASLI FIX YAHAN HAI (Argument Error) *****
+        // 6th argument (error) ko ek named parameter `processErrorCallback` hona chahiye
+        processErrorCallback: (error) { 
+        // *********************************************
           setState(() {
             _chatHistory.add(ChatMessage("Picovoice error: ${error.message}"));
             _currentState = _AssistantState.error;
           });
         },
       );
-      await _picovoiceManager?.start();
+
+      _picovoiceManager?.start();
       setState(() {
-        _chatHistory.add(ChatMessage("Say 'Hey Jarvis' or swipe up for apps..."));
+         _chatHistory.add(ChatMessage("Say 'Hey Jarvis' or swipe up for apps..."));
       });
+
     } on PicovoiceException catch (err) {
       setState(() {
-        _chatHistory.add(ChatMessage("Failed to init Picovoice: ${err.message}"));
-        _currentState = _AssistantState.error;
+         _chatHistory.add(ChatMessage("Failed to init Picovoice: ${err.message}"));
+         _currentState = _AssistantState.error;
       });
     }
   }
-
-  Future<void> _initTts() async {
+  
+  // NAYA: Orca (TTS) ko initialize karein
+  void _initTts() async {
     _orcaTTS = OrcaTTS();
     try {
       await _orcaTTS.init(_picovoiceAccessKey);
-      _orcaTTS.player.onPlayerComplete.listen((_) {
-        setState(() => _currentState = _AssistantState.idle);
-        _picovoiceManager?.start();
+      
+      // Audio player ko setup karein (Bolna kab poora hua)
+      _orcaTTS.player.playbackEventStream.listen((event) { 
+          if (event.processingState == ProcessingState.completed) {
+            // Bolna poora ho gaya
+            setState(() {
+              _currentState = _AssistantState.idle;
+            });
+            _picovoiceManager?.start(); // Hotword waapas chalu karo
+          }
       });
+      
     } catch (e) {
-      setState(() {
-        _chatHistory.add(ChatMessage("Failed to init Orca TTS: $e"));
-        _currentState = _AssistantState.error;
-      });
+       setState(() {
+         _chatHistory.add(ChatMessage("Failed to init Orca TTS: $e"));
+         _currentState = _AssistantState.error;
+       });
     }
   }
 
+
+  // "Hey Jarvis" sunne par
   void _wakeWordCallback() {
     if (_currentState == _AssistantState.idle) {
-      setState(() {
+       setState(() {
         _currentState = _AssistantState.listening;
         _chatHistory.add(ChatMessage("Listening...", isUser: true));
         _scrollToBottom();
@@ -206,183 +253,155 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
     }
   }
 
+  // Poora command sunne par
   void _inferenceCallback(Map<String, dynamic> inference) {
     String transcript = "I didn't understand that.";
     bool understood = false;
 
-    if (inference['isUnderstood'] == true) {
-      transcript = inference['transcript'] ?? "";
+    if (inference.containsKey('isUnderstood') && inference['isUnderstood']) {
+      transcript = inference['transcript'];
       understood = true;
+    } else if (inference.containsKey('transcript') && inference['transcript'].isNotEmpty) {
+       transcript = inference['transcript'];
+       understood = true;
     }
 
     setState(() {
-      if (_chatHistory.isNotEmpty && _chatHistory.last.text == "Listening...") {
-        _chatHistory.removeLast();
-      }
-      _chatHistory.add(ChatMessage(transcript, isUser: true));
-      _currentState = _AssistantState.thinking;
+      _chatHistory.removeLast();
+      _chatHistory.add(ChatMessage(transcript.isNotEmpty ? transcript : "...", isUser: true));
+      _currentState = _AssistantState.thinking; 
       _scrollToBottom();
     });
 
-    understood ? _processCommand(transcript) : _speak(transcript);
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
-  void _loadInstalledApps() async {
-    List<AppInfo> apps =
-        await InstalledApps.getInstalledApps(true, true);
-    apps.sort((a, b) => a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
-    setState(() => _installedApps = apps);
-  }
-
-  Future<void> _processCommand(String rawText) async {
-    String command = rawText.toLowerCase();
-
-    if (command.startsWith("open") || command.startsWith("launch")) {
-      String appName =
-          command.replaceFirst("open", "").replaceFirst("launch", "").trim();
-      appName.isNotEmpty ? _openApp(appName) : _speak("Which app do you want?");
-      return;
-    }
-
-    if (command.startsWith("call") || command.startsWith("phone")) {
-      String contactName =
-          command.replaceFirst("call", "").replaceFirst("phone", "").trim();
-      contactName.isNotEmpty
-          ? _makeCall(contactName)
-          : _speak("Who do you want to call?");
-      return;
-    }
-
-    if (command.contains("show all apps") || command.contains("open app drawer")) {
-      _openAppDrawer();
-      setState(() => _currentState = _AssistantState.idle);
-      return;
-    }
-
-    if (_isOnline) {
-      Map<String, String>? geminiResponse = await _getGeminiResponse(rawText);
-      if (geminiResponse == null) {
-        _speak("My AI brain connection failed. Offline mode active.");
-        return;
-      }
-      String spoken = geminiResponse['spoken'] ?? "Here’s what I found.";
-      String display = geminiResponse['display'] ?? "";
-      _speak(spoken);
-      if (display.isNotEmpty) {
-        setState(() {
-          _chatHistory.add(ChatMessage(display, isCodeBlock: true));
-          _scrollToBottom();
-        });
-      }
+    if (understood && transcript.isNotEmpty) {
+      _processCommand(transcript);
     } else {
-      _speak("I'm offline. I can only open apps or make calls.");
+      _speak(transcript);
     }
   }
-
-  Future<void> _speak(String text) async {
-    await _orcaTTS.speak(text);
-  }
-
-  Future<void> _openApp(String appName) async {
-    for (var app in _installedApps) {
-      if (app.name!.toLowerCase().contains(appName)) {
-        await InstalledApps.startApp(app.packageName!);
-        return;
+  
+  // Command ko process karein (Offline ya Online)
+  Future<void> _processCommand(String rawText) async {
+      String command = rawText.toLowerCase();
+      
+      // OFFLINE: App kholne ke liye
+      if (command.startsWith("open") || command.startsWith("launch")) {
+         String appName = command.replaceFirst("open", "").replaceFirst("launch", "").trim();
+         if (appName.isNotEmpty) {
+           _openApp(appName);
+         } else {
+           _speak("Which app do you want to open?");
+         }
+         return;
       }
-    }
-    _speak("I couldn’t find $appName.");
-  }
+      
+      // OFFLINE: Call karne ke liye
+      else if (command.startsWith("call") || command.startsWith("phone")) {
+         String contactName = command.replaceFirst("call", "").replaceFirst("phone", "").trim();
+         if (contactName.isNotEmpty) {
+           _makeCall(contactName);
+         } else {
+           _speak("Who do you want to call?");
+         }
+         return;
+      }
+      
+      else if (command.contains("show all apps") || command.contains("open app drawer")) {
+         _openAppDrawer();
+         setState(() { _currentState = _AssistantState.idle; });
+         return;
+      }
 
-  void _openAppDrawer() {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => ListView(
-        children: _installedApps
-            .map((a) => ListTile(
-                  title: Text(a.name ?? 'Unknown App'),
-                  onTap: () => InstalledApps.startApp(a.packageName!),
-                ))
-            .toList(),
-      ),
-    );
+      // ONLINE: Agar offline command nahi hai, toh Internet check karein
+      if (_isOnline) {
+        Map<String, String>? geminiResponse = await _getGeminiResponse(rawText);
+        
+        if (geminiResponse == null) {
+          _speak("My AI brain connection has failed. I can only help with offline tasks for now, like opening apps or making calls.");
+          return;
+        }
+
+        String spokenResponse = geminiResponse['spoken'] ?? "I found something, check your screen.";
+        String displayData = geminiResponse['display'] ?? "";
+        
+        _speak(spokenResponse); 
+        
+        if(displayData.isNotEmpty) {
+          setState(() {
+             _chatHistory.add(ChatMessage(displayData, isCodeBlock: true));
+             _scrollToBottom();
+          });
+        }
+        
+      } else {
+        _speak("I'm offline. I can only help with offline tasks, like opening apps or making calls.");
+      }
   }
 
   Future<void> _makeCall(String contactName) async {
-    if (await Permission.contacts.isGranted &&
-        await Permission.phone.isGranted) {
+    if (await Permission.contacts.isGranted && await Permission.phone.isGranted) {
       _speak("Searching for $contactName...");
+      
       try {
-        List<Contact> contacts =
-            await FlutterContacts.getContacts(withProperties: true);
-        Contact? target = contacts.firstWhere(
-            (c) => c.displayName.toLowerCase().contains(contactName),
-            orElse: () => Contact());
-        if (target.phones.isNotEmpty) {
-          String number = target.phones.first.number;
-          _speak("Calling ${target.displayName}...");
-          await FlutterPhoneDirectCaller.callNumber(number);
+        List<Contact> contacts = await FlutterContacts.getContacts(
+          withProperties: true, withPhoto: false
+        );
+        Contact? targetContact;
+        for (var contact in contacts) {
+          if (contact.displayName.toLowerCase().contains(contactName)) {
+            targetContact = contact;
+            break;
+          }
+        }
+        if (targetContact != null && targetContact.phones.isNotEmpty) {
+            String number = targetContact.phones.first.number;
+            _speak("Calling ${targetContact.displayName}...");
+            await FlutterPhoneDirectCaller.callNumber(number);
+            setState(() { _currentState = _AssistantState.idle; });
+            _picovoiceManager?.start();
         } else {
-          _speak("No number found for ${target.displayName}");
+          _speak("Sorry, I could not find $contactName in your contacts.");
         }
       } catch (e) {
-        _speak("Error reading contacts.");
+        _speak("Sorry, I encountered an error trying to read your contacts.");
       }
     } else {
-      _speak("I need permission to make calls.");
-      await _requestPermissions();
+      _speak("I need contacts and phone permissions to make calls.");
+      await _requestPermissions(); 
     }
   }
 
   Future<Map<String, String>?> _getGeminiResponse(String prompt) async {
-    const String url =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
+    const String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
+    
+    List<Map<String, dynamic>> historyPayload = _chatHistory
+      .where((msg) => msg.text != "Listening...") 
+      .map((msg) {
+          return {
+            "role": msg.isUser ? "user" : (msg.isCodeBlock ? "model" : "model"), 
+            "parts": [{"text": msg.text}]
+          };
+      }).toList();
+      
+    if(historyPayload.isNotEmpty) {
+       historyPayload.removeLast();
+    }
 
     final body = jsonEncode({
       "contents": [
-        {"role": "user", "parts": [{"text": prompt}]}
+        ...historyPayload,
+        {
+          "role": "user",
+          "parts": [{"text": prompt}]
+        }
       ],
       "systemInstruction": {
-        "parts": [
-          {
-            "text":
-                "You are Jarvis SRS, a launcher voice assistant. Always reply in two parts separated by '|||'. "
-                    "Part 1: Short spoken reply. Part 2: data/code to display or 'NONE'. "
-                    "Example: 'Here’s your Python code.|||```python\\ndef add(a,b):\\n    return a+b\\n```'"
-          }
-        ]
-      }
-    });
-
-    final response = await http.post(
-      Uri.parse("$url$_geminiApiKey"),
-      headers: {"Content-Type": "application/json"},
-      body: body,
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final text =
-          data["candidates"]?[0]?["content"]?["parts"]?[0]?["text"] ?? "";
-      if (text.contains("|||")) {
-        final parts = text.split("|||");
-        return {"spoken": parts[0].trim(), "display": parts[1].trim()};
-      } else {
-        return {"spoken": text.trim(), "display": ""};
-      }
-    } else {
-      return null;
-    }
-  }
-}
+        "parts": [{
+          // ***** YAHI ASLI FIX HAI (Syntax Error) *****
+          "text": "You are Jarvis srs, a helpful voice assistant in a launcher. "
+                  "You MUST answer in two parts, separated by '|||'. "
+                  "Part 1: A short, conversational response to be spoken aloud (DO NOT mention the code block). "
+                  "Part 2: The code block or data to be displayed (if any). "
+                  "If there is no code, Part 2 should be 'NONE'. "
+                  "EXAMPLE 1: User asks 'write a python function to add numbers'. "
+                  "Your response: Here is the Python function you asked for.|||
