@@ -1,5 +1,3 @@
-import org.gradle.api.JavaVersion
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -12,12 +10,13 @@ android {
     ndkVersion = "25.1.8937393"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        // UPGRADE: Modern Gradle/Flutter requires Java 17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -36,15 +35,26 @@ android {
 
     buildTypes {
         release {
+            // Note: Use your own keystore for production releases
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = false
+            
+            // Set these to true if you want code shrinking (requires correct proguard rules)
+            // If you get errors in Release mode, set these back to false
+            isMinifyEnabled = false 
+            isShrinkResources = false 
+            
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+        
         debug {
             signingConfig = signingConfigs.getByName("debug")
+            
+            // FIX: This fixes the "Removing unused resources requires unused code shrinking" error
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 
@@ -71,12 +81,8 @@ flutter {
 }
 
 dependencies {
-    // OLD MANUAL WAY (Removed):
-    // implementation(files("libs/orca-android-3.0.2.aar"))
-
-    // NEW AUTOMATIC WAY (Recommended):
     // Ye line automatic internet se sahi Orca library download karegi.
-    // Orca ka latest stable version 1.2.0+ hai (3.0.2 Orca ke liye exist nahi karta).
+    // Orca ka latest stable version 1.2.0+ hai.
     implementation("ai.picovoice:orca-android:1.2.0")
 
     // JSON processing (required for Picovoice/Orca)
