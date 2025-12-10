@@ -6,8 +6,10 @@ plugins {
 
 android {
     namespace = "com.example.voice_assistant"
-    compileSdk = 34
-    ndkVersion = "25.1.8937393"
+    // FIX: Updated to 36 as required by package_info_plus, path_provider_android, etc.
+    compileSdk = 36
+    // FIX: Updated to the version required by your plugins
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         // UPGRADE: Modern Gradle/Flutter requires Java 17

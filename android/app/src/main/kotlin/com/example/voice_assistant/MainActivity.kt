@@ -1,80 +1,89 @@
-package com.example.voice_assistant // IMPORTANT: Yahaan apna package naam zaroor check kar lein
+package com.example.voice_assistant
 
-import androidx.annotation.NonNull
+import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-
-// Orca ke imports
 import ai.picovoice.orca.Orca
-import ai.picovoice.orca.OrcaException
+import ai.picovoice.orca.OrcaAudio
+import ai.picovoice.orca.OrcaError
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class MainActivity: FlutterActivity() {
-    private val CHANNEL = "com.jarvis.orca" // Aapke code waala channel naam
+    private val CHANNEL = "com.jarvis.orca"
     private var orca: Orca? = null
 
-    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
-                .setMethodCallHandler { call, result ->
-                    when (call.method) {
-                        "initOrca" -> {
-                            try {
-                                val accessKey = call.argument<String>("accessKey")
-                                
-                                // NAYA: Asset se file padhne ka Kotlin tareeka
-                                // FIX: Yahaan aapka file naam daal diya gaya hai
-                                val modelPath = "orca_params_en_male.pv" 
-                                // (Zaroor check karein ki file ka naam 'android/app/src/main/assets/' mein yahi hai)
-                                
-                                // File ko cache directory mein copy karein taaki Orca usse read kar sake
-                                val modelFile = java.io.File(cacheDir, modelPath)
-                                if (!modelFile.exists()) {
-                                    val assetStream = assets.open(modelPath)
-                                    val fileOutStream = java.io.FileOutputStream(modelFile)
-                                    assetStream.copyTo(fileOutStream)
-                                    assetStream.close()
-                                    fileOutStream.close()
-                                }
-
-                                orca = Orca(accessKey, modelFile.absolutePath)
-                                
-                                result.success(true)
-                            } catch (e: Exception) {
-                                result.error("INIT_ERROR", e.message, null)
-                            }
-                        }
-
-                        "speak" -> {
-                            try {
-                                val text = call.argument<String>("text")
-                                // Orca int16[] return karta hai, usse byte[] mein badlein
-                                val pcm: ShortArray = orca!!.synthesize(text)
-                                val buffer = ByteBuffer.allocate(pcm.size * 2) // 16-bit = 2 bytes
-                                buffer.order(ByteOrder.LITTLE_ENDIAN)
-                                for (shortVal in pcm) {
-                                    buffer.putShort(shortVal)
-                                }
-                                
-                                result.success(buffer.array())
-                            } catch (e: OrcaException) {
-                                result.error("SYNTH_ERROR", e.message, null)
-                            }
-                        }
-
-                        "deleteOrca" -> {
-                             orca?.delete()
-                             orca = null
-                             result.success(true)
-                        }
-
-                        else -> {
-                            result.notImplemented()
-                        }
-                    }
+        
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+            if (call.method == "initOrca") {
+                val accessKey = call.argument<String>("accessKey")
+                if (accessKey == null) {
+                    result.error("INVALID_ARGUMENT", "AccessKey is missing", null)
+                    return@setMethodCallHandler
                 }
+
+                try {
+                    // FIX: Use Builder pattern instead of private constructor
+                    orca = Orca.Builder()
+                        .setAccessKey(accessKey)
+                        .build(context)
+                    result.success(null)
+                } catch (e: OrcaError) {
+                    result.error("INIT_ERROR", e.message, null)
+                } catch (e: Exception) {
+                    result.error("INIT_ERROR", e.message, null)
+                }
+            } 
+            else if (call.method == "speak") {
+                val text = call.argument<String>("text")
+                if (text == null) {
+                    result.error("INVALID_ARGUMENT", "Text is missing", null)
+                    return@setMethodCallHandler
+                }
+
+                if (orca == null) {
+                    result.error("UNINITIALIZED", "Orca is not initialized", null)
+                    return@setMethodCallHandler
+                }
+
+                try {
+                    // FIX: Handle OrcaAudio object instead of ShortArray directly
+                    val audio: OrcaAudio = orca!!.synthesize(text)
+                    val pcm: ShortArray = audio.pcm
+
+                    // Convert ShortArray (16-bit) to ByteArray (Little Endian) for Flutter
+                    val byteBuffer = ByteBuffer.allocate(pcm.size * 2)
+                    byteBuffer.order(ByteOrder.LITTLE_ENDIAN)
+                    for (s in pcm) {
+                        byteBuffer.putShort(s)
+                    }
+                    
+                    // Return raw PCM bytes. 
+                    // Note: Depending on audio player on Flutter side, you might need a WAV header here.
+                    // But raw bytes is standard for 'BytesSource' if configured correctly.
+                    result.success(byteBuffer.array())
+                } catch (e: OrcaError) {
+                    result.error("SPEAK_ERROR", e.message, null)
+                } catch (e: Exception) {
+                    result.error("SPEAK_ERROR", e.message, null)
+                }
+            } 
+            else if (call.method == "deleteOrca") {
+                orca?.delete()
+                orca = null
+                result.success(null)
+            } 
+            else {
+                result.notImplemented()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        orca?.delete()
+        super.onDestroy()
     }
 }
