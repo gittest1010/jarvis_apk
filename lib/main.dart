@@ -11,6 +11,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:picovoice_flutter/picovoice_manager.dart';
 import 'package:picovoice_flutter/picovoice_error.dart';
+// FIX: Added Rhino import for type checking
+import 'package:rhino_flutter/rhino.dart';
 
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
@@ -120,8 +122,8 @@ class VoiceAssistantScreen extends StatefulWidget {
 
 class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
   // ===== API KEYS =====
-  final String _picovoiceAccessKey = "YOUR_PICOVOICE_ACCESS_KEY_HERE";
-  final String _geminiApiKey = "YOUR_GEMINI_API_KEY_HERE";
+  final String _picovoiceAccessKey = "Du/wUGsdB9dU+um0teBOZNydHV2rzDiO6dbsGtLTqTGUYQF0RQzuIA==";
+  final String _geminiApiKey = "AIzaSyBs-_4ek29Hu116CNJHjyH-DtkcmBx3xaU";
   // ====================
 
   PicovoiceManager? _picovoiceManager;
@@ -275,16 +277,13 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
     }
   }
 
-  void _inferenceCallback(Map<String, dynamic> inference) {
+  // FIX: Updated to accept RhinoInference instead of Map<String, dynamic>
+  void _inferenceCallback(RhinoInference inference) {
     String transcript = "";
-    bool understood = false;
+    bool understood = inference.isUnderstood ?? false;
 
-    if (inference.containsKey('isUnderstood') && inference['isUnderstood'] == true) {
-      transcript = inference['intent'] ?? "";
-      understood = true;
-    } else if (inference.containsKey('transcript')) {
-      transcript = inference['transcript'] ?? "";
-      understood = transcript.isNotEmpty;
+    if (understood) {
+      transcript = inference.intent ?? "";
     }
 
     if (mounted) {
