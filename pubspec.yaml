@@ -1,5 +1,5 @@
 name: voice_assistant
-description: "Jarvis SRS Smart Launcher"
+description: "Jarvis SRS Smart Launcher with Voice AI"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,32 +10,23 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # ----- AI / VOICE (CORE) -----
-  # Hotword detection + offline speech understanding
-
-  # Native Orca audio playback
+  # ----- CORE AI / VOICE -----
+  picovoice_flutter: ^3.0.2
   audioplayers: ^6.1.0
-
-  # Online AI (Gemini API)
-  http: ^1.2.2
+  http: ^1.5.0
 
   # ----- LAUNCHER FEATURES -----
-  # Replacement for device_apps (safe for Android 14+)
-  installed_apps: ^1.2.0
-  flutter_contacts: ^1.1.8
+  installed_apps: ^1.6.0
+  flutter_contacts: ^1.1.9
   flutter_phone_direct_caller: ^2.1.1
 
-  # ----- UI PACKAGES -----
-  flutter_syntax_highlighter: ^0.2.1
-  clipboard: ^0.1.3
+  # ----- UI & UTILITIES -----
   cupertino_icons: ^1.0.8
 
-  # ----- UTILITIES & PERMISSIONS -----
-  permission_handler: ^11.3.1
-  wakelock_plus: ^1.2.5
-  connectivity_plus: ^6.0.3
-  porcupine_flutter: ^3.0.6
-  cheetah_flutter: ^2.3.0
+  # ----- SYSTEM PERMISSIONS & FEATURES -----
+  permission_handler: ^11.4.0
+  wakelock_plus: ^1.2.8
+  connectivity_plus: ^6.1.5
 
 dev_dependencies:
   flutter_test:
@@ -45,8 +36,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # ----- ASSETS -----
   assets:
-    # Picovoice hotword and context models
     - assets/keywords/
-    - assets/models/
+    - assets/contexts/

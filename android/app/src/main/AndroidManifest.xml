@@ -1,40 +1,56 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.voice_assistant">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- ===== PERMISSIONS (Jarvis srs ke liye) ===== -->
-    <!-- Picovoice (Hotword + STT) ke liye -->
+    <!-- ===== PERMISSIONS (Jarvis SRS) ===== -->
+    
+    <!-- Picovoice (Hotword + STT) -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <!-- Picovoice/Wakelock (Background + Screen) ke liye -->
+    
+    <!-- Wakelock (Keep Screen On) -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     
-    <!-- Gemini API (Online Brain) ke liye -->
+    <!-- Gemini API (Online Brain) -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- Internet check karne ke liye -->
+    
+    <!-- Connectivity Check -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     
-    <!-- Calling features ke liye -->
+    <!-- Calling Features -->
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
     <uses-permission android:name="android.permission.CALL_PHONE"/>
-    <!-- ============================================== -->
+    
+    <!-- installed_apps Package (Android 11+) -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+    
+    <!-- ===================================== -->
 
 
-    <!-- ===== QUERIES (Jarvis srs ke liye) ===== -->
+    <!-- ===== QUERIES (App Discovery) ===== -->
     <queries>
-        <!-- device_apps (App Drawer) ke liye zaroori hai -->
+        <!-- For installed_apps package to find launcher apps -->
         <intent>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
         </intent>
         
-        <!-- Native Orca TTS ko iski zaroorat nahi hai -->
+        <!-- For opening apps -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+        </intent>
         
+        <!-- For phone calls -->
+        <intent>
+            <action android:name="android.intent.action.CALL"/>
+        </intent>
     </queries>
-    <!-- ====================================== -->
+    <!-- ==================================== -->
+
 
     <application
-        android:label="Jarvis srs"
+        android:label="Jarvis SRS"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -46,11 +62,10 @@
             android:windowSoftInputMode="adjustResize">
             
             <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"/>
             
-            <!-- App ko Launcher banata hai -->
+            <!-- Make this app a Launcher -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.HOME"/>
@@ -62,6 +77,8 @@
         
         <meta-data
             android:name="flutterEmbedding"
-            android:value="2" />
+            android:value="2"/>
+            
     </application>
+    
 </manifest>
